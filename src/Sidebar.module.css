@@ -1,0 +1,57 @@
+.sidebar {
+  background: var(--brown);
+  border-radius: 18px;
+  padding: 22px;
+  position: sticky;
+  top: 80px;
+}
+.sidebar h4 {
+  font-family: 'Playfair Display', serif;
+  margin-bottom: 16px;
+  font-size: 20px;
+  color: white;
+}
+.catBtn {
+  display: block;
+  text-align: left;
+  width: 100%;
+  background: rgba(255,255,255,.1);
+  border: none;
+  color: rgba(255,255,255,.85);
+  margin-bottom: 8px;
+  transition: .2s;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+.catBtn:hover {
+  background: rgba(255,255,255,.25);
+  color: white;
+}
+.catBtn.active {
+  background: var(--gold);
+  color: #2f2f2f;
+  font-weight: 600;
+}
+.wspBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px 16px;
+  background: #25D366;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: .2s;
+  text-decoration: none;
+  justify-content: center;
+}
+.wspBtn:hover { background: #1fba5a; color: white; }

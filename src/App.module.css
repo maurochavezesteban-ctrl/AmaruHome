@@ -1,0 +1,19 @@
+.catalogo {
+  padding: 40px 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+.noResults {
+  text-align: center;
+  padding: 50px 20px;
+  color: #aaa;
+  grid-column: 1 / -1;
+}
+.noResults i {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+}

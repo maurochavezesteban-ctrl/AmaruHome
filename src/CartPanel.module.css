@@ -1,0 +1,94 @@
+.panel {
+  background: white;
+  border-bottom: 1px solid var(--border);
+}
+.inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.header h5 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  margin: 0;
+}
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+}
+.empty {
+  text-align: center;
+  padding: 30px;
+  color: #aaa;
+  font-size: 14px;
+}
+.empty i {
+  font-size: 36px;
+  display: block;
+  margin-bottom: 8px;
+}
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: #faf9f7;
+  border-radius: 14px;
+}
+.item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.itemInfo { flex: 1; }
+.itemName { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+.itemPrice { font-size: 13px; color: var(--brown); font-weight: 700; }
+.qtyRow { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.qtyBtn {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid var(--border); background: white;
+  cursor: pointer; font-size: 13px; display: flex;
+  align-items: center; justify-content: center;
+}
+.qtyBtn:hover { background: var(--bg); }
+.qtyVal { font-size: 13px; font-weight: 500; min-width: 18px; text-align: center; }
+.removeBtn {
+  background: none; border: none; color: #ccc;
+  cursor: pointer; font-size: 15px; padding: 4px;
+}
+.removeBtn:hover { color: #e74c3c; }
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.totalLabel { font-size: 15px; font-weight: 600; }
+.totalAmount { color: var(--brown); font-size: 20px; font-weight: 700; }
+.wspBtn {
+  padding: 11px 24px; border-radius: 50px; border: none;
+  background: #25D366; color: white; font-weight: 700;
+  font-size: 14px; cursor: pointer; display: flex;
+  align-items: center; gap: 8px;
+  font-family: 'Poppins', sans-serif; transition: .2s;
+}
+.wspBtn:hover { background: #1fba5a; }
