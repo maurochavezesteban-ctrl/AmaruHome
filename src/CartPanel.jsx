@@ -9,18 +9,28 @@ export default function CartPanel({ isOpen, onClose, cart = [], onChangeQty, onR
     return '$ ' + numero.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   };
 
-  const guardarPedidoEnServidor = async (cliente, productos, totalFormateado) => {
-    try {
-      await fetch('http://localhost:3001/pedido', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cliente, productos, total: totalFormateado })
-      });
-    } catch (err) {
-      // Si el servidor no está corriendo no bloquea el WhatsApp
-      console.warn('⚠️ No se pudo guardar en el servidor:', err.message);
-    }
-  };
+  const guardarPedidoEnServidor = async () => {
+  try {
+    await fetch('/api/agregar_pedido', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cliente: nombre.trim(),
+        productos: cart.map(item => ({   // ✅ array completo, no string
+          producto_id:     String(item.id   || 'SIN_ID'),
+          producto_nombre: item.name        || 'Sin nombre',
+          categoria:       item.category   || 'General',
+          cantidad:        item.qty         || 1,
+          total_costo:     (item.price || 0) * (item.qty || 1),
+          telefono: 0
+        })),
+        total: total   // ✅ número, no string formateado
+      })
+    });
+  } catch (err) {
+    console.warn('⚠️ No se pudo guardar en el servidor:', err.message);
+  }
+};
 
   const handlePedidoClick = async (e) => {
     if (e) {
