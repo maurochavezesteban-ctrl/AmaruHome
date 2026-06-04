@@ -1,89 +1,159 @@
-import os
-from datetime import datetime
-import pyodbc
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import pyodbc
+from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 
-CORS(app, origins="*")
-CONN_STR = (
-    "Driver={ODBC Driver 17 for SQL Server};"
-    "Server=DESKTOP-M3BEQUA\\SQLEXPRESS;"
-    "Database=ShowroomDb;"
-    "Trusted_Connection=yes;"
-)
+DB_CONFIG = {
+    "server":   r"localhost\SQLEXPRESS",
+    "database": "AmaruHomeDb",
+    "driver":   "ODBC Driver 17 for SQL Server",
+}
 
-def obtener_o_crear_cliente(nombre):
-    conn = pyodbc.connect(CONN_STR)
-    try:
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                "SELECT TOP 1 cliente_id FROM ventas_whatsapp WHERE cliente = ?",
-                (nombre,)
-            )
-            resultado = cursor.fetchone()
-            if resultado:
-                cliente_id = resultado[0]
-                print(f"👤 [CLIENTE EXISTENTE] ID: {cliente_id} | Nombre: {nombre}")
-            else:
-                cursor.execute("SELECT ISNULL(MAX(cliente_id), 0) + 1 FROM ventas_whatsapp")
-                cliente_id = cursor.fetchone()[0]
-                print(f"🆔 [CLIENTE NUEVO] ID generado: {cliente_id} | Nombre: {nombre}")
-            return cliente_id
-        finally:
-            cursor.close()
-    finally:
-        conn.close()
+def get_connection():
+    conn_str = (
+        f"DRIVER={{{DB_CONFIG['driver']}}};"
+        f"SERVER={DB_CONFIG['server']};"
+        f"DATABASE={DB_CONFIG['database']};"
+        f"Trusted_Connection=yes;"
+    )
+    return pyodbc.connect(conn_str)
+
 
 @app.route('/api/agregar_pedido', methods=['POST'])
 def agregar_pedido():
+    data = request.get_json()
+
+    # Validacion
+    for campo in ['email', 'nombre', 'apellido', 'telefono', 'productos', 'total']:
+        if campo not in data:
+            return jsonify({"error": "Falta el campo: " + campo}), 400
+
+    email     = data['email'].strip().lower()
+    nombre    = data['nombre'].strip()
+    apellido  = data['apellido'].strip()
+    telefono  = data['telefono'].strip()
+    productos = data['productos']
+    total     = float(data['total'] or 0)
+
+    if not productos:
+        return jsonify({"error": "El carrito esta vacio"}), 400
+
+    conn   = None
+    cursor = None
+
     try:
-        datos = request.json
-        print("\n🔎 [CONTROL] DATOS RECIBIDOS:", datos)
+        conn   = get_connection()
+        cursor = conn.cursor()
 
-        if not datos:
-            return jsonify({"status": "error", "message": "No JSON received"}), 400
+        # ── 1. UPSERT CLIENTE ─────────────────────────────────────────────
+        cursor.execute(
+            "SELECT cliente_id FROM dbo.clientes WHERE email = ?",
+            (email,)
+        )
+        row = cursor.fetchone()
 
-        nombre_cliente = datos.get('cliente', 'Cliente Anónimo')
-        productos      = datos.get('productos', [])
-        total_general  = datos.get('total', 0)
+        if row:
+            cliente_id = row[0]
+            cursor.execute(
+                "UPDATE dbo.clientes SET nombre = ?, apellido = ?, telefono = ? WHERE cliente_id = ?",
+                (nombre, apellido, telefono, cliente_id)
+            )
+            print("Cliente existente actualizado, id:", cliente_id)
+        else:
+            cursor.execute(
+                "INSERT INTO dbo.clientes (email, nombre, apellido, telefono) OUTPUT INSERTED.cliente_id VALUES (?, ?, ?, ?)",
+                (email, nombre, apellido, telefono)
+            )
+            cliente_id = int(cursor.fetchone()[0])
+            print("Cliente nuevo insertado, id:", cliente_id)
 
-        cliente_id   = obtener_o_crear_cliente(nombre_cliente)
-        fecha_actual = datetime.now().strftime('%Y-%m-%d')
+        # ── 2. INSERTAR PEDIDO ────────────────────────────────────────────
+        cursor.execute(
+            "INSERT INTO dbo.pedidos (cliente_id, total, estado) OUTPUT INSERTED.pedido_id VALUES (?, ?, ?)",
+            (cliente_id, total, 'Pendiente')
+        )
+        pedido_id = int(cursor.fetchone()[0])
+        print("Pedido insertado, id:", pedido_id)
 
-        conn = pyodbc.connect(CONN_STR)
-        try:
-            cursor = conn.cursor()
-            try:
-                for item in productos:
-                    cursor.execute("""
-                        INSERT INTO ventas_whatsapp (
-                            fecha, cliente_id, cliente, producto_id, producto_nombre,
-                            categoria, cantidad, total_costo, estado
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pendiente')
-                    """, (
-                        fecha_actual,
-                        cliente_id,
-                        nombre_cliente,
-                        item.get('producto_id',     'SIN_ID'),
-                        item.get('producto_nombre', 'Sin nombre'),
-                        item.get('categoria',       'General'),
-                        item.get('cantidad',         1),
-                        item.get('total_costo',      0)
-                    ))
-                conn.commit()
-                print(f"✅ [{len(productos)} producto(s)] guardados para cliente_id {cliente_id}")
-                return jsonify({"status": "success", "message": f"{len(productos)} producto(s) guardados"}), 200
-            finally:
-                cursor.close()
-        finally:
-            conn.close()
+        # ── 3. INSERTAR DETALLES ──────────────────────────────────────────
+        for item in productos:
+            producto_id     = str(item.get('producto_id', 'SIN_ID'))
+            producto_nombre = str(item.get('producto_nombre', 'Sin nombre'))
+            categoria       = str(item.get('categoria', 'General'))
+            cantidad        = int(item.get('cantidad', 1))
+            precio_venta    = float(item.get('precio_venta', 0))
+
+            cursor.execute(
+                """INSERT INTO dbo.pedido_detalles
+                   (pedido_id, producto_id, producto_nombre, categoria, cantidad, precio_venta)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (pedido_id, producto_id, producto_nombre, categoria, cantidad, precio_venta)
+            )
+            print("Detalle insertado:", producto_nombre, "x", cantidad)
+
+        conn.commit()
+        print("Commit exitoso")
+
+        return jsonify({
+            "success":    True,
+            "pedido_id":  pedido_id,
+            "cliente_id": cliente_id,
+            "mensaje":    "Pedido #" + str(pedido_id) + " registrado correctamente."
+        }), 201
+
+    except pyodbc.Error as e:
+        print("ERROR pyodbc:", str(e))
+        if conn:
+            conn.rollback()
+        return jsonify({"error": "Error de base de datos", "detalle": str(e)}), 500
 
     except Exception as e:
-        print(f"❌ [ERROR] {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print("ERROR general:", str(e))
+        if conn:
+            conn.rollback()
+        return jsonify({"error": "Error interno", "detalle": str(e)}), 500
+
+    finally:
+        if cursor: cursor.close()
+        if conn:   conn.close()
+
+
+@app.route('/api/pedidos', methods=['GET'])
+def ver_pedidos():
+    try:
+        conn   = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT p.pedido_id, c.nombre, c.apellido, c.email,
+                   p.fecha_pedido, p.total, p.estado
+            FROM dbo.pedidos p
+            JOIN dbo.clientes c ON p.cliente_id = c.cliente_id
+            ORDER BY p.fecha_pedido DESC
+        """)
+        rows = cursor.fetchall()
+        conn.close()
+
+        pedidos = [
+            {
+                "pedido_id":    r[0],
+                "nombre":       r[1],
+                "apellido":     r[2],
+                "email":        r[3],
+                "fecha_pedido": r[4].strftime("%d/%m/%Y %H:%M") if r[4] else '',
+                "total":        float(r[5]),
+                "estado":       r[6]
+            }
+            for r in rows
+        ]
+        return jsonify(pedidos), 200
+
+    except Exception as e:
+        print("ERROR ver_pedidos:", str(e))
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True, port=5000)

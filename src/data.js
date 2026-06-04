@@ -27,6 +27,6 @@ export const CAT_LABELS = {
   alfombras: 'Alfombras', almohadas: 'Almohadas', cortinas: 'Cortinas', frazadas: 'Frazadas',
 }
 
-export const WA_NUMBER = '5491173653844'
+export const WA_NUMBER = '5491140643880'
 
 export const fmt = (n) => '$' + n.toLocaleString('es-AR')
