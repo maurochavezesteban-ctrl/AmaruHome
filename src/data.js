@@ -19,6 +19,7 @@ export const CATEGORIES = [
   { key: 'almohadas', label: 'Almohadas' },
   { key: 'cortinas', label: 'Cortinas' },
   { key: 'frazadas', label: 'Frazadas' },
+  { key: 'edredon', label: 'Edredón'}
 ]
 
 export const CAT_LABELS = {

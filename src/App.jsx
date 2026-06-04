@@ -14,13 +14,21 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('todas')
   const [searchQuery, setSearchQuery] = useState('')
-  
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
+
   // Estado global de favoritos
   const [favoritos, setFavoritos] = useState([])
   const [mostrarFavoritos, setMostrarFavoritos] = useState(false)
 
   const { cart, addToCart, removeFromCart, changeQty, total, count } = useCart()
   const { message, visible, showToast } = useToast()
+
+  // Actualiza isMobile al redimensionar
+  useState(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const handleAddToCart = (product) => {
     if (addToCart) {
@@ -51,7 +59,6 @@ export default function App() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      {/* Sincronizamos el contador real de useCart directamente aquí */}
       <Navbar
         cartCount={cart ? cart.reduce((acc, item) => acc + (item.qty || 1), 0) : 0}
         favoritosCount={favoritos.length}
@@ -60,6 +67,24 @@ export default function App() {
         searchQuery={searchQuery}
         onSearch={setSearchQuery}
       />
+
+      {/* Solo en mobile/tablet: overlay que cierra el carrito al hacer scroll */}
+      {cartOpen && isMobile && (
+        <div
+          onWheel={() => setCartOpen(false)}
+          onTouchMove={() => setCartOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: '85vw',      // deja libre el ancho del CartPanel en mobile (85vw)
+            bottom: 0,
+            zIndex: 9998,
+            cursor: 'default',
+            backgroundColor: 'transparent',
+          }}
+        />
+      )}
 
       <CartPanel
         isOpen={cartOpen}

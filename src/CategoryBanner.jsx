@@ -87,9 +87,8 @@ export default function CategoryBanner({ activeCategory, onCategorySelect }) {
 
   return (
     <section style={{ backgroundColor: '#f4f1ec', padding: '48px 0', width: '100%', boxSizing: 'border-box' }}>
-      {/* Agrandamos el ancho máximo permitido de 1240px a 1350px para ganar espacio */}
       <div style={{ maxWidth: '1350px', margin: '0 auto', padding: '0 15px', boxSizing: 'border-box' }}>
-        
+
         {/* Encabezado */}
         <div style={{ textAlign: 'center', marginBottom: '35px' }}>
           <h2 style={{ 
@@ -106,88 +105,96 @@ export default function CategoryBanner({ activeCategory, onCategorySelect }) {
           </p>
         </div>
 
-        {/* Fila única de máxima optimización de espacio */}
+        {/* Capa exterior: maneja el scroll horizontal */}
         <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          gap: '10px', // Reducido un poquito para exprimir el espacio sin romper la fila
           width: '100%',
-          justifyContent: 'space-between',
           overflowX: 'auto',
-          paddingBottom: '8px'
+          paddingBottom: '12px',
+          boxSizing: 'border-box',
+          WebkitOverflowScrolling: 'touch',
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none'
         }}>
-          {categorias.map((category) => {
-            const isActive = activeCategory === category.id;
 
-            return (
-              <button
-                key={category.id}
-                onClick={() => onCategorySelect(category.id)}
-                style={{
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '24px 6px', // Más alto, pero delgado a los costados
-                  borderRadius: '16px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  flex: '1 1 0px', 
-                  minWidth: '115px', // Asegura el tamaño perfecto escalado
-                  backgroundColor: isActive ? '#8b715b' : '#fff',
-                  color: isActive ? '#fff' : '#374151',
-                  boxShadow: isActive ? '0 12px 18px -3px rgba(139,113,91,0.22)' : '0 4px 6px -1px rgba(0,0,0,0.01)',
-                  transform: isActive ? 'scale(1.03)' : 'scale(1)',
-                  transition: 'all 0.25s ease'
-                }}
-              >
-                {/* Esfera del icono escalada a 56px */}
-                <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '12px',
-                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(200, 171, 132, 0.12)',
-                  color: isActive ? '#fff' : '#8b715b',
-                  transition: 'transform 0.3s ease'
-                }}>
-                  {category.icon}
-                </div>
+          {/* Capa interior: centra en desktop, se expande en mobile */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: '10px',
+            minWidth: 'max-content',
+            padding: '0 4px'
+          }}>
+            {categorias.map((category) => {
+              const isActive = activeCategory === category.id;
 
-                {/* Texto a un tamaño impecable y legible */}
-                <span style={{
-                  fontSize: '13.5px',
-                  fontWeight: '600',
-                  textAlign: 'center',
-                  lineHeight: '1.2',
-                  letterSpacing: '0.1px'
-                }}>
-                  {category.name}
-                </span>
-
-                {/* Indicador grueso inferior */}
-                {isActive && (
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => onCategorySelect && onCategorySelect(category.id)}
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '24px 6px',
+                    borderRadius: '16px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    flexShrink: 0,
+                    width: '115px',
+                    backgroundColor: isActive ? '#8b715b' : '#fff',
+                    color: isActive ? '#fff' : '#374151',
+                    boxShadow: isActive ? '0 12px 18px -3px rgba(139,113,91,0.22)' : '0 4px 6px -1px rgba(0,0,0,0.01)',
+                    transform: isActive ? 'scale(1.03)' : 'scale(1)',
+                    transition: 'all 0.25s ease'
+                  }}
+                >
                   <div style={{
-                    position: 'absolute',
-                    bottom: '-2px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: '32px',
-                    height: '4px',
-                    backgroundColor: '#c8ab84',
-                    borderRadius: '9999px'
-                  }} />
-                )}
-              </button>
-            );
-          })}
-        </div>
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '12px',
+                    backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(200, 171, 132, 0.12)',
+                    color: isActive ? '#fff' : '#8b715b',
+                    transition: 'transform 0.3s ease'
+                  }}>
+                    {category.icon}
+                  </div>
 
+                  <span style={{
+                    fontSize: '13.5px',
+                    fontWeight: '600',
+                    textAlign: 'center',
+                    lineHeight: '1.2',
+                    letterSpacing: '0.1px'
+                  }}>
+                    {category.name}
+                  </span>
+
+                  {isActive && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '-2px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: '32px',
+                      height: '4px',
+                      backgroundColor: '#c8ab84',
+                      borderRadius: '9999px'
+                    }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+        </div>
       </div>
     </section>
   );

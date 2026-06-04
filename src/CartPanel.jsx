@@ -10,27 +10,30 @@ export default function CartPanel({ isOpen, onClose, cart = [], onChangeQty, onR
   };
 
   const guardarPedidoEnServidor = async () => {
-  try {
-    await fetch('/api/agregar_pedido', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cliente: nombre.trim(),
-        productos: cart.map(item => ({   // ✅ array completo, no string
-          producto_id:     String(item.id   || 'SIN_ID'),
-          producto_nombre: item.name        || 'Sin nombre',
-          categoria:       item.category   || 'General',
-          cantidad:        item.qty         || 1,
-          total_costo:     (item.price || 0) * (item.qty || 1),
-          telefono: 0
-        })),
-        total: total   // ✅ número, no string formateado
-      })
-    });
-  } catch (err) {
-    console.warn('⚠️ No se pudo guardar en el servidor:', err.message);
-  }
-};
+    try {
+      const apiUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:5000/api/agregar_pedido'
+        : `http://192.168.0.157:5000/api/agregar_pedido`
+
+      await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cliente: nombre.trim(),
+          productos: cart.map(item => ({
+            producto_id:     String(item.id   || 'SIN_ID'),
+            producto_nombre: item.name        || 'Sin nombre',
+            categoria:       item.category    || 'General',
+            cantidad:        item.qty         || 1,
+            total_costo:     (item.price || 0) * (item.qty || 1),
+          })),
+          total: total
+        })
+      });
+    } catch (err) {
+      console.warn('⚠️ No se pudo guardar en el servidor:', err.message);
+    }
+  };
 
   const handlePedidoClick = async (e) => {
     if (e) {
@@ -48,7 +51,6 @@ export default function CartPanel({ isOpen, onClose, cart = [], onChangeQty, onR
       return;
     }
 
-    // ── Armar mensaje WhatsApp ────────────────────────────────────────────────
     let mensajeTexto = "*Cliente:* " + nombre.trim() + "\n";
     mensajeTexto += "¡Hola! Quiero hacer el siguiente pedido en AmaruHome:\n\n";
 
@@ -59,16 +61,10 @@ export default function CartPanel({ isOpen, onClose, cart = [], onChangeQty, onR
 
     mensajeTexto += "\n*Total: " + formatearDinero(total) + "*";
 
-    // ── Guardar en SQL Server + Excel ─────────────────────────────────────────
-    const productosTexto = cart
-      .map(item => `${item.name} x${item.qty}`)
-      .join(', ');
-
     const textoCodificado = encodeURIComponent(mensajeTexto);
     window.open("https://wa.me/5491154256307?text=" + textoCodificado, "_blank");
 
-    // ── Guardar en SQL Server + Excel (no bloquea WhatsApp) ───────────────────
-    guardarPedidoEnServidor(nombre.trim(), productosTexto, formatearDinero(total));
+    guardarPedidoEnServidor();
   };
 
   if (!isOpen) return null;
