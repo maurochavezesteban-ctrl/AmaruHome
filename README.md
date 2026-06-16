@@ -1,4 +1,4 @@
-# Pipeline ETL — AmaruHome 🚀
+# Pipeline ETL — AmaruHome 
 
 ## Descripción del Proyecto
 Diseño e implementación de un pipeline de datos (ETL) completo para AmaruHome. El sistema automatiza la extracción de eventos interactivos desde el frontend en React, procesa y transforma los datos mediante Python y SQL, y los centraliza en una base de datos relacional para responder preguntas estratégicas de negocio.
