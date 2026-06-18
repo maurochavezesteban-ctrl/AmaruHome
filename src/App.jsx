@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { PRODUCTS } from './data'
+import { fetchProductsFromSheets } from './data'
 import { useCart } from './useCart'
 import Navbar from './Navbar'
 import CartPanel from './CartPanel'
@@ -33,6 +33,8 @@ const makeCollapseStyle = (isCollapsed, maxH = '800px') => ({
 })
 
 export default function App() {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [cartOpen, setCartOpen]                 = useState(false)
   const [activeCategory, setActiveCategory]     = useState('todas')
   const [searchQuery, setSearchQuery]           = useState('')
@@ -40,6 +42,12 @@ export default function App() {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [favoritos, setFavoritos]               = useState([])
   const [mostrarFavoritos, setMostrarFavoritos] = useState(false)
+useEffect(() => {
+  fetchProductsFromSheets().then(data => {
+    setProducts(data)
+    setLoading(false)
+  })
+}, [])
 
   const { cart, addToCart, removeFromCart, changeQty, total } = useCart()
   const { message, visible, showToast } = useToast()
@@ -97,7 +105,7 @@ export default function App() {
     }
   }
 
-  const filtered = PRODUCTS.filter(p => {
+  const filtered = products.filter(p => {
     const coincideCategoria = activeCategory === 'todas' || p.cat === activeCategory
     const searchNorm        = normalize(searchQuery.trim())
     const catDisplay        = CATEGORY_NAMES[p.cat] || p.cat || ''
@@ -108,6 +116,10 @@ export default function App() {
     const coincideFavorito  = !mostrarFavoritos || favoritos.includes(p.id)
     return coincideCategoria && coincideBusqueda && coincideFavorito
   })
+    if (loading) {
+    return <div style={{ textAlign: 'center', padding: '100px', fontFamily: 'sans-serif', color: '#8b715b' }}>Cargando catálogo de Amaru Home...</div>
+  }
+
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
