@@ -1,10 +1,18 @@
-from flask import Flask, request, jsonify
+import os
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pyodbc
 from datetime import datetime
 
-app = Flask(__name__)
+
+app = Flask(__name__, 
+            static_folder=os.path.join(os.path.dirname(__file__), 'dist'),
+            static_url_path='/')
 CORS(app)
+# Ruta mágica para que internet cargue tu interfaz visual de Vite
+@app.route('/')
+def serve_index():
+    return send_from_directory(app.static_folder, 'index.html')
 
 DB_CONFIG = {
     "server":   r"localhost\SQLEXPRESS",
